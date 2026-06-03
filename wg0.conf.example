@@ -1,0 +1,45 @@
+# /etc/wireguard/wg0.conf  (SERVER)
+#
+# Replace every <PLACEHOLDER> with your real values. Never commit real keys.
+# Generate keys with:
+#   wg genkey | tee server_private.key | wg pubkey > server_public.key
+#
+# This file should be chmod 600 and owned by root.
+
+[Interface]
+Address = 10.10.0.1/24
+ListenPort = 51820
+PrivateKey = <SERVER_PRIVATE_KEY>
+
+# NAT/forwarding so VPN clients can reach the LAN and internet.
+# eth0 is the Pi's LAN interface — change if yours differs.
+PostUp   = nft add table inet wg; nft add chain inet wg fwd '{ type filter hook forward priority 0; }'; nft add rule inet wg fwd iifname "wg0" accept; nft add rule inet wg fwd oifname "wg0" accept; nft add table ip wgnat; nft add chain ip wgnat post '{ type nat hook postrouting priority 100; }'; nft add rule ip wgnat post oifname "eth0" masquerade
+PostDown = nft delete table inet wg; nft delete table ip wgnat
+
+# ---- Peers (one block per device) ----
+
+# Phone
+[Peer]
+PublicKey = <PHONE_PUBLIC_KEY>
+AllowedIPs = 10.10.0.2/32
+
+# Laptop
+[Peer]
+PublicKey = <LAPTOP_PUBLIC_KEY>
+AllowedIPs = 10.10.0.3/32
+
+
+# ============================================================
+# Example CLIENT config (put this on the phone/laptop, not the server)
+# ------------------------------------------------------------
+# [Interface]
+# Address = 10.10.0.2/32
+# PrivateKey = <CLIENT_PRIVATE_KEY>
+# DNS = 10.10.0.1            # routes client DNS through Pi-hole over the tunnel
+#
+# [Peer]
+# PublicKey = <SERVER_PUBLIC_KEY>
+# Endpoint = <YOUR_PUBLIC_IP_OR_DDNS>:51820
+# AllowedIPs = 0.0.0.0/0     # full tunnel; use 10.10.0.0/24,192.168.x.0/24 for split
+# PersistentKeepalive = 25
+# ============================================================
