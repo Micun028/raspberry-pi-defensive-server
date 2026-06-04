@@ -6,7 +6,7 @@
 # A Raspberry Pi 5 (8 GB) can run the full single-node Wazuh stack, but the
 # indexer (OpenSearch) is RAM-hungry. For a snappier homelab, run the AGENT on
 # the Pi and the MANAGER + DASHBOARD on a more powerful host (or a VM).
-
+# THIS is wazuh agent
 set -euo pipefail
 
 if [[ $EUID -ne 0 ]]; then
